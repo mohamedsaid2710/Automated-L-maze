@@ -1,0 +1,10 @@
+sample;1;Das ist ein Test.
+sample;2;Die Katze saß auf der Matte.
+sample;3;Sie bestellte Kaffee im Café.
+sample;4;Berlin ist eine große Stadt.
+sample;5;Wissenschaftler entdeckten eine neue Art.
+sample;6;Er schreibt jeden Morgen Code.
+sample;7;Das rote Auto raste am Haus vorbei.
+sample;8;Kinder spielten bis zur dämmerung im Park.
+sample;9;Maria kaufte Blumen für Sonntag.
+sample;10;Der Bergpfad war steil und felsig.

@@ -1,0 +1,26 @@
+name: tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.10", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - run: uv sync
+      - run: uv run pytest -q
+      - name: run every sample
+        shell: bash
+        run: |
+          for l in english:en german:de arabic:ar hebrew:he hindi:hi chinese:zh; do
+            f=${l%%:*}; c=${l##*:}
+            uv run lmaze -i examples/${f}_sample.txt -o out_$c.txt -p params_$c.txt -f ibex
+          done

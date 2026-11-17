@@ -1,0 +1,50 @@
+# =============================================================================
+# L-maze pseudoword generation parameters - Arabic (ar)
+# =============================================================================
+# Format: `key: value`, `#` starts a comment. Copy this file to make a
+# variant (e.g. a stricter lexicon check) or a new language, then pass it with -p.
+
+# Arabic (MSA). Right to left, no case. wordfreq lists unvocalised forms, so harakat (tashkeel) in
+# the input are removed before lookup; letters join by the font, so no shaping is done here.
+# Clitics (al-, wa-, bi-) are part of the written word and are learned with it.
+
+# --- Language ---
+language: "ar"
+language_name: "Arabic"
+script: "Arabic"
+direction: "rtl"
+has_case: False
+lowercase: False
+strip_marks: True
+unit: "grapheme"
+normalise: "NFC"
+
+# --- Lexicon (wordfreq) ---
+wordlist: "large"
+train_min_zipf: 2.0
+# The 28 letters in alphabetical order, then the hamza forms, ta marbuta and alef maqsura
+# (spaces are ignored; the set is what matters, not the order)
+alphabet: "ا ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ك ل م ن ه و ي ء أ إ آ ؤ ئ ة ى"
+
+# --- Language-specific generator settings ---
+min_ngram_count: 5
+
+# --- Generator (defaults; change to tune) ---
+n_samples: 400            # candidates sampled per word; more = better matches, slower
+temperature: 0.5          # < 1 favours rarer letter sequences, for more varied pseudowords
+min_edit_distance: 2      # the distractor must differ from its target in at least this many
+                          # letters, counted as letters to change, add or delete
+                          # (Levenshtein distance): Haus -> Hans = 1, Haus -> Kopf = 4.
+                          # Keeps the distractor from being a near-copy of the target.
+len_tolerance: 1          # a word with no same-length pseudoword (short words) may get one that
+                          # is this many units shorter or longer; 0 = never (x-x-x instead)
+max_repeat: 1             # a distractor is used at most this often in the whole run
+                          # (shared across an item's conditions counts once); 0 = no limit
+repeat_exempt_max_len: 3  # distractors this short are exempt from max_repeat (function words
+                          # recur in every sentence)
+train_max_words: 100000   # most frequent words used to learn the letter sequences
+
+# --- Output ---
+first_word: "x-x-x"       # placeholder at the first position (standard Maze convention)
+seed: 0                   # same input + same seed = same output
+write_report: True        # also write <output>.report.csv (one row per distractor)

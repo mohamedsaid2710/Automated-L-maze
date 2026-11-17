@@ -1,0 +1,49 @@
+# =============================================================================
+# L-maze pseudoword generation parameters - Hebrew (he)
+# =============================================================================
+# Format: `key: value`, `#` starts a comment. Copy this file to make a
+# variant (e.g. a stricter lexicon check) or a new language, then pass it with -p.
+
+# Hebrew. Right to left, no case. wordfreq lists unvocalised forms, so points (niqqud) in the input
+# are removed before lookup. Final letters (ך ם ן ף ץ) stay word-final because the n-grams are
+# learned with word-start and word-end markers.
+
+# --- Language ---
+language: "he"
+language_name: "Hebrew"
+script: "Hebrew"
+direction: "rtl"
+has_case: False
+lowercase: False
+strip_marks: True
+unit: "grapheme"
+normalise: "NFC"
+
+# --- Lexicon (wordfreq) ---
+wordlist: "large"
+train_min_zipf: 2.0
+# The 22 letters, each final form after its letter (spaces are ignored)
+alphabet: "א ב ג ד ה ו ז ח ט י כ ך ל מ ם נ ן ס ע פ ף צ ץ ק ר ש ת"
+
+# --- Language-specific generator settings ---
+min_ngram_count: 5
+
+# --- Generator (defaults; change to tune) ---
+n_samples: 400            # candidates sampled per word; more = better matches, slower
+temperature: 0.5          # < 1 favours rarer letter sequences, for more varied pseudowords
+min_edit_distance: 2      # the distractor must differ from its target in at least this many
+                          # letters, counted as letters to change, add or delete
+                          # (Levenshtein distance): Haus -> Hans = 1, Haus -> Kopf = 4.
+                          # Keeps the distractor from being a near-copy of the target.
+len_tolerance: 1          # a word with no same-length pseudoword (short words) may get one that
+                          # is this many units shorter or longer; 0 = never (x-x-x instead)
+max_repeat: 1             # a distractor is used at most this often in the whole run
+                          # (shared across an item's conditions counts once); 0 = no limit
+repeat_exempt_max_len: 3  # distractors this short are exempt from max_repeat (function words
+                          # recur in every sentence)
+train_max_words: 100000   # most frequent words used to learn the letter sequences
+
+# --- Output ---
+first_word: "x-x-x"       # placeholder at the first position (standard Maze convention)
+seed: 0                   # same input + same seed = same output
+write_report: True        # also write <output>.report.csv (one row per distractor)

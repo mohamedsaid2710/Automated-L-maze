@@ -1,0 +1,6 @@
+SgGram;1;Das Gewehr auf dem Tisch des Generals war noch nicht geladen.;0 1 2 3 4 5 6 7 8 9 10
+SgUngram;1;Das Gewehr auf dem Tisch des Generals waren noch nicht geladen.;0 1 2 3 4 5 6 70 8 9 10
+PlGram;1;Das Gewehr auf den Tischen des Generals war noch nicht geladen.;0 1 2 30 40 5 6 7 8 9 10
+PlUngram;1;Das Gewehr auf den Tischen des Generals waren noch nicht geladen.;0 1 2 30 40 5 6 70 8 9 10
+GP_sg;2;Die Musikerin vom Leipziger Sinfonieorchester lobten die Dirigenten begeistert in der Pressekonferenz.;0 1 2 3 4 5 6 7 8 9 10 11
+noGP_pl;2;Die Musikerinnen vom Leipziger Sinfonieorchester lobten den Dirigenten begeistert in der Pressekonferenz.;0 20 2 3 4 5 60 7 8 9 10 11
