@@ -7,8 +7,8 @@ relaxations in Generator.RELAXATIONS are tried in order and reported):
 4  (partly) at least `min_edit_distance` units away from the target
 5  the target's capitalisation (scripts with case)
 6  the target's leading and trailing punctuation
-7  no distractor twice within an item; across the whole run at most `max_repeat` times
-   (distractors of up to `repeat_exempt_max_len` units are exempt:
+7  no distractor twice within an item; across the whole run at most `max_repeat` times, short
+   distractors (up to `short_word_max_len` units) at most `max_repeat_short` times
    function words recur in every sentence, and the stock of short pseudowords is small)
 8  position 0 gets the placeholder (x-x-x)
 Labels: one distractor per label, shared by all rows of an item (Latin-square consistency).
@@ -36,6 +36,7 @@ class Generator:
         self.model = make_model(self.lexicon.training_words(), order=profile.ngram_order,
                                 min_count=profile.min_ngram_count)
         self.times_used = {}                # distractor -> how often used so far in this run
+        self.unit_set = sorted({u for w in self.lexicon.training_words() for u in w})
         self.vowels = set(units("".join(profile.vowels.split()), profile.unit)) if profile.vowels else None
 
     def _seed(self, *parts):
@@ -91,18 +92,21 @@ class Generator:
                 cand = "".join(cu)
                 if cand == key or cand in used or edit_distance(cu, tu) < min_ed:
                     continue
-                short = len(cu) <= p.repeat_exempt_max_len
-                if p.max_repeat and not short and self.times_used.get(cand, 0) >= p.max_repeat:
+                short = len(cu) <= p.short_word_max_len
+                limit = p.max_repeat_short if short else p.max_repeat
+                if limit and self.times_used.get(cand, 0) >= limit:
                     continue
                 if self.vowels and not self.vowels & set(cu):
                     continue
                 if self.lexicon.is_real_word(cand):
                     rejected += 1
                     continue
+                if not short and p.min_word_distance > 1 and self.lexicon.near_common_word(cu, self.unit_set):
+                    rejected += 1               # e.g. اننتصب: one letter away from انتصب, read as the word
+                    continue
                 passing.append((cu, lp))
-                # Long words: the best match. Short words (exempt from max_repeat): the least-used of
-                # the SHORT_POOL best matches, so that "der" does not get the same pseudoword in
-                # every sentence of the experiment.
+                # Long words: the best match. Short words: the least-used of the SHORT_POOL best
+                # matches, so that "der" does not get the same pseudoword in every sentence.
                 if not short or len(passing) >= self.SHORT_POOL:
                     break
             if passing:

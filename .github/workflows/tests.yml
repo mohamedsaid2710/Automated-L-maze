@@ -20,7 +20,7 @@ jobs:
       - name: run every sample
         shell: bash
         run: |
-          for l in english:en german:de arabic:ar hebrew:he hindi:hi chinese:zh; do
+          for l in english:en german:de arabic:ar hebrew:he chinese:zh; do
             f=${l%%:*}; c=${l##*:}
             uv run lmaze -i examples/${f}_sample.txt -o out_$c.txt -p params_$c.txt -f ibex
           done

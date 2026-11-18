@@ -5,7 +5,7 @@ matched, orthographically legal pseudoword for every word, ready for PsychoPy, j
 plus a report of how well each distractor meets the constraints.
 
 Designed so that a new language, in any script, needs only a params file. Included: German,
-English, Arabic, Hebrew, Hindi and Chinese.
+English, Arabic, Hebrew and Chinese.
 
 **Status:** in development.
 
@@ -36,8 +36,7 @@ uv run lmaze -i examples/german_sample.txt -o output_de.txt -p params_de.txt -f 
 ## Parameters
 
 Each language has a params file (`params_de.txt`, `params_en.txt`, `params_ar.txt`, `params_he.txt`,
-`params_hi.txt`, `params_zh.txt`), in a simple `key: value` format. Every
-parameter is explained in the file. To change a setting, copy the file, edit it, and pass the copy
-with `-p`; to add a language, copy the file of a language with a similar script.
+`params_zh.txt`), in a simple `key: value` format. Every
+parameter is explained in the file; edit the values as you need.
 
 Mohammed Said, Institute of Linguistics, University of Stuttgart.

@@ -1,8 +1,7 @@
 # =============================================================================
 # L-maze pseudoword generation parameters - Chinese (zh)
 # =============================================================================
-# Format: `key: value`, `#` starts a comment. Copy this file to make a
-# variant (e.g. a stricter lexicon check) or a new language, then pass it with -p.
+# Format: `key: value`, `#` starts a comment. Edit the values as you need.
 
 # Chinese (simplified). No spaces in Chinese: the input sentences must be segmented into words with
 # spaces. Units are characters; candidates combine a real word-initial character with a real
@@ -21,15 +20,15 @@ normalise: "NFC"
 
 # --- Lexicon (wordfreq) ---
 wordlist: "large"
-train_min_zipf: 2.5
+train_min_zipf: 2.0
 
 # --- Language-specific generator settings ---
 ngram_order: 1
-min_ngram_count: 5
+min_ngram_count: 3
 
 # --- Generator (defaults; change to tune) ---
 n_samples: 400            # candidates sampled per word; more = better matches, slower
-temperature: 0.5          # < 1 favours rarer letter sequences, for more varied pseudowords
+temperature: 1.0          # < 1 favours rarer letter sequences, for more varied pseudowords
 min_edit_distance: 1      # the distractor must differ from its target in at least this many
                           # characters, counted as characters to change, add or delete
                           # (Levenshtein distance): 学生 -> 学长 = 1, 学生 -> 医院 = 2.
@@ -38,8 +37,16 @@ len_tolerance: 1          # a word with no same-length pseudoword (short words) 
                           # is this many units shorter or longer; 0 = never (x-x-x instead)
 max_repeat: 1             # a distractor is used at most this often in the whole run
                           # (shared across an item's conditions counts once); 0 = no limit
-repeat_exempt_max_len: 1  # distractors this short are exempt from max_repeat (function words
-                          # recur in every sentence)
+short_word_max_len: 1     # distractors this short (in units) count as short words
+max_repeat_short: 3       # a short distractor is used at most this often in the whole run
+                          # (function words recur in every sentence, and few short strings
+                          # are not real words)
+min_word_distance: 0      # Chinese: off, because a pseudoword made of two real characters is
+                          # always one character away from some word.
+                          # A distractor that is not short must differ from every common word
+                          # (Zipf >= train_min_zipf) in at least this many letters (same counting as
+                          # min_edit_distance); otherwise it reads as a misspelling of that
+                          # word (Arabic اننتصب -> انتصب). 0 or 1 = check off
 train_max_words: 100000   # most frequent words used to learn the letter sequences
 
 # --- Output ---

@@ -88,3 +88,20 @@ def test_hyphenated_compound_keeps_hyphen_and_single_letters(german):
     assert pw is not None and pw.startswith("U-") and n_units(pw) == 6
     pw, rep = german.pseudoword("Max-Planck", set())
     assert pw is not None and pw.count("-") == 1 and pw[0].isupper() and pw.split("-")[1][0].isupper()
+
+
+def test_short_distractors_repeat_at_most_max_repeat_short(german):
+    items = read_input(EXAMPLES / "german_sample.txt")
+    rows = german.run(items)
+    from collections import Counter
+    counts = Counter(r["distractor"].lower() for r in rows if not r["is_placeholder"])
+    for d, n in counts.items():
+        limit = german.profile.max_repeat_short if n_units(d) <= german.profile.short_word_max_len \
+            else german.profile.max_repeat
+        assert n <= limit, (d, n)
+
+
+def test_one_letter_from_a_common_word_is_rejected():
+    from lmaze.text import units
+    arabic = Generator(load_profile(ROOT / "params_ar.txt"))
+    assert arabic.lexicon.near_common_word(units("اننتصب"), arabic.unit_set)      # انتصب + ن

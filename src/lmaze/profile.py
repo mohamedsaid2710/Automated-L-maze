@@ -43,7 +43,10 @@ class Profile:
                                        # this many units shorter or longer; 0 = never (placeholder)
     max_repeat: int = 1                # how often one distractor may be used in a whole run (one label
                                        # shared by an item's conditions counts once); 0 = no limit
-    repeat_exempt_max_len: int = 3     # distractors this short (in units) are exempt from max_repeat
+    short_word_max_len: int = 3        # distractors this short (in units) count as short words
+    max_repeat_short: int = 3          # how often one short distractor may be used in a whole run
+    min_word_distance: int = 2         # a (non-short) distractor must differ from every common word
+                                       # (Zipf >= train_min_zipf) in at least this many letters; 0/1 = off
     # --- Output ---
     first_word: str = "x-x-x"          # placeholder at position 0
     seed: int = 0                      # same input + same seed = same output

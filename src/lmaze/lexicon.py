@@ -55,6 +55,31 @@ class Lexicon:
         """Constraint 2: the string is in the word list (any entry counts)."""
         return self.key(word) in self.table
 
+    def common_words(self):
+        """Words of the list at least as frequent as the training floor (train_min_zipf): the words a
+        reader knows. Web noise (typos, names, foreign strings) stays out."""
+        if not hasattr(self, "_common"):
+            floor = 10 ** (self.profile.train_min_zipf - 9)
+            self._common = {self.key(w) for w, f in self.table.items() if f >= floor}
+        return self._common
+
+    def near_common_word(self, cand_units, alphabet):
+        """True if one edit (change, add or delete one unit) turns the candidate into a common word.
+        Such a string is read as a misspelling of that word rather than as a nonword (Arabic
+        اننتصب is read as انتصب)."""
+        common = self.common_words()
+        u = list(cand_units)
+        for i in range(len(u) + 1):
+            if i < len(u):
+                if "".join(u[:i] + u[i + 1:]) in common:                       # delete
+                    return True
+            for a in alphabet:
+                if "".join(u[:i] + [a] + u[i:]) in common:                     # add
+                    return True
+                if i < len(u) and a != u[i] and "".join(u[:i] + [a] + u[i + 1:]) in common:   # change
+                    return True
+        return False
+
     def training_words(self):
         """Words that train the n-gram model, as unit tuples (frequent, clean words only)."""
         p = self.profile
