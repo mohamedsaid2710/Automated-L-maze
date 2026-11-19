@@ -10,7 +10,7 @@ relaxations in Generator.RELAXATIONS are tried in order and reported):
 7  no distractor twice within an item; across the whole run at most `max_repeat` times, short
    distractors (up to `short_word_max_len` units) at most `max_repeat_short` times
    function words recur in every sentence, and the stock of short pseudowords is small)
-8  position 0 gets the placeholder (x-x-x)
+8  position 0 gets the placeholder (x-x-x) if first_word is 1, else a pseudoword like any word
 Labels: one distractor per label, shared by all rows of an item (Latin-square consistency).
 """
 
@@ -20,8 +20,10 @@ import zlib
 import regex
 
 from .lexicon import Lexicon
-from .ngram import make_model
+from .neural import NeuralModel
 from .text import copy_case, copy_punct, edit_distance, strip_punct, units
+
+PLACEHOLDER = "x-x-x"                  # first position (first_word: 1) and words with no pseudoword
 
 # Inside a word body, anything that is not a letter or combining mark separates segments
 # (hyphenated compounds, apostrophes): each segment gets its own pseudoword, the separators stay.
@@ -33,8 +35,13 @@ class Generator:
         self.profile = profile
         self.seed = seed
         self.lexicon = Lexicon(profile)
-        self.model = make_model(self.lexicon.training_words(), order=profile.ngram_order,
-                                min_count=profile.min_ngram_count)
+        words = self.lexicon.training_words()
+        self.model = NeuralModel(words, key_parts=(profile.language, profile.wordlist, profile.train_min_zipf,
+                                                   profile.train_max_words, profile.alphabet, profile.vowels,
+                                                   profile.unit, profile.normalise, profile.lowercase,
+                                                   profile.strip_marks, profile.script),
+                                 final_only=units("".join(profile.final_only.split()), profile.unit),
+                                 not_final=units("".join(profile.not_final.split()), profile.unit))
         self.times_used = {}                # distractor -> how often used so far in this run
         self.unit_set = sorted({u for w in self.lexicon.training_words() for u in w})
         self.vowels = set(units("".join(profile.vowels.split()), profile.unit)) if profile.vowels else None
@@ -42,9 +49,6 @@ class Generator:
     def _seed(self, *parts):
         return zlib.crc32("|".join(map(str, (self.seed, *parts))).encode("utf-8"))
 
-    # Relaxation steps, tried in order until a candidate passes. Short words (2-3 units) often have
-    # no strict solution: almost every legal 2-letter string is listed somewhere in a large web
-    # lexicon. Each relaxation is recorded in the report.
     # Relaxation steps, tried in order until a candidate passes. Short words (1-3 units) often have
     # no strict solution: almost every legal short string is listed somewhere in a large web
     # lexicon. Each relaxation is recorded in the report.
@@ -103,6 +107,9 @@ class Generator:
                     continue
                 if not short and p.min_word_distance > 1 and self.lexicon.near_common_word(cu, self.unit_set):
                     rejected += 1               # e.g. اننتصب: one letter away from انتصب, read as the word
+                    continue
+                if not short and self.lexicon.affixed_common_word(cand):
+                    rejected += 1               # e.g. تكملتك = تكملة + ك
                     continue
                 passing.append((cu, lp))
                 # Long words: the best match. Short words: the least-used of the SHORT_POOL best
@@ -167,7 +174,7 @@ class Generator:
                     if lab in targets and targets[lab] != body:
                         logging.warning("Item %s: label %s is %r in one row and %r in another; "
                                         "they share one distractor", item.id, lab, targets[lab], body)
-                    if i == 0 or lab in chosen:
+                    if (i == 0 and p.first_word) or lab in chosen:
                         targets.setdefault(lab, body)
                         continue
                     targets[lab] = body
@@ -175,7 +182,7 @@ class Generator:
                     tn = len(units(self.lexicon.key(body), p.unit))
                     if pw is None:
                         logging.warning("Item %s, word %r: %s; placeholder used", item.id, body, rep.get("note"))
-                        chosen[lab] = p.first_word
+                        chosen[lab] = PLACEHOLDER
                     else:
                         chosen[lab] = pw
                         used.add(self.lexicon.key(pw))
@@ -186,7 +193,7 @@ class Generator:
                     lp_t, lp_d = rep.get("target_logprob"), rep.get("distractor_logprob")
                     rows.append({
                         "item_id": item.id, "label": lab, "position": i, "target": body,
-                        "distractor": chosen[lab], "generator": "ngram" if pw else "placeholder",
+                        "distractor": chosen[lab], "generator": "neural" if pw else "placeholder",
                         "target_units": tn, "distractor_units": dn, "len_ok": dn == tn if pw else False,
                         "is_real_word": self.lexicon.is_real_word(pw) if pw else None,
                         "edit_distance": rep.get("edit_distance"),
@@ -198,6 +205,6 @@ class Generator:
                         "is_placeholder": pw is None, "note": rep.get("note", ""),
                     })
             for s in item.sentences:
-                s.distractors = [copy_punct(tok, p.first_word if i == 0 else chosen[lab])
+                s.distractors = [copy_punct(tok, PLACEHOLDER if i == 0 and p.first_word else chosen[lab])
                                  for i, (tok, lab) in enumerate(zip(s.words, s.labels))]
         return rows

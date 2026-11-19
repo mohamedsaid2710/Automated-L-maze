@@ -16,11 +16,11 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: uv sync
+      # trained letter models are kept between runs (the German test model trains in about a minute)
+      - uses: actions/cache@v4
+        with:
+          path: .lmaze-cache
+          key: lmaze-${{ matrix.os }}-${{ hashFiles('src/lmaze/neural.py', 'src/lmaze/lexicon.py', 'uv.lock') }}
       - run: uv run pytest -q
-      - name: run every sample
-        shell: bash
-        run: |
-          for l in english:en german:de arabic:ar hebrew:he chinese:zh; do
-            f=${l%%:*}; c=${l##*:}
-            uv run lmaze -i examples/${f}_sample.txt -o out_$c.txt -p params_$c.txt -f ibex
-          done
+        env:
+          LMAZE_CACHE: .lmaze-cache

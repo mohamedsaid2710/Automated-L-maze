@@ -1,5 +1,9 @@
-"""End to end on German (needs wordfreq's German data, installed with wordfreq)."""
+"""End to end on German (needs wordfreq's German data, installed with wordfreq).
 
+The letter model is trained on the 20,000 most frequent German words to keep the tests quick (about a
+minute once; then loaded from the cache)."""
+
+import dataclasses
 from pathlib import Path
 
 import pytest
@@ -14,9 +18,13 @@ EXAMPLES = ROOT / "examples"
 PARAMS_DE = ROOT / "params_de.txt"
 
 
+def profile_de():
+    return dataclasses.replace(load_profile(PARAMS_DE), train_max_words=20_000)
+
+
 @pytest.fixture(scope="module")
 def german():
-    return Generator(load_profile(PARAMS_DE), seed=0)
+    return Generator(profile_de(), seed=0)
 
 
 @pytest.fixture(scope="module")
@@ -78,7 +86,7 @@ def test_same_seed_same_output(german):
     a = read_input(EXAMPLES / "german_sample.txt")
     b = read_input(EXAMPLES / "german_sample.txt")
     german.run(a)
-    Generator(load_profile(PARAMS_DE), seed=0).run(b)
+    Generator(profile_de(), seed=0).run(b)
     assert [s.distractors for i in a.values() for s in i.sentences] == \
            [s.distractors for i in b.values() for s in i.sentences]
 
@@ -102,6 +110,33 @@ def test_short_distractors_repeat_at_most_max_repeat_short(german):
 
 
 def test_one_letter_from_a_common_word_is_rejected():
+    from lmaze.lexicon import Lexicon
     from lmaze.text import units
-    arabic = Generator(load_profile(ROOT / "params_ar.txt"))
-    assert arabic.lexicon.near_common_word(units("اننتصب"), arabic.unit_set)      # انتصب + ن
+    lexicon = Lexicon(dataclasses.replace(load_profile(ROOT / "params_ar.txt"), near_word_min_zipf=0.0))
+    alphabet = sorted({u for w in lexicon.training_words() for u in w})
+    assert lexicon.near_common_word(units("اننتصب"), alphabet)                   # انتصب + ن
+
+
+def test_common_word_with_affixes_is_rejected():
+    from lmaze.lexicon import Lexicon
+    profile = dataclasses.replace(load_profile(ROOT / "params_ar.txt"),
+                                  prefixes="و ف ب ل ك س ال", suffixes="ه ها ك ي ات ية", stem_end_changes="ت>ة")
+    lexicon = Lexicon(profile)
+    assert lexicon.affixed_common_word("تكملتك")                  # تكملة + ك (ة written ت)
+    assert lexicon.affixed_common_word("فخارات")                  # فخار + ات
+    assert lexicon.affixed_common_word("بالكتاب")                 # ب + الكتاب
+    assert not lexicon.affixed_common_word("قثظات")
+    assert not Lexicon(load_profile(ROOT / "params_de.txt")).affixed_common_word("Hausung")   # no affixes set
+
+
+
+
+def test_first_word_0_gives_the_first_word_a_pseudoword():
+    gen = Generator(dataclasses.replace(profile_de(), first_word=0), seed=0)
+    items = read_input(ROOT / "tests" / "data" / "german_items.txt")
+    gen.run(items)
+    for item in items.values():
+        for s in item.sentences:
+            first, dist = strip_punct(s.words[0]), strip_punct(s.distractors[0])
+            assert dist != "x-x-x" and dist != first
+            assert dist[:1].isupper() == first[:1].isupper()      # capitalised like the target

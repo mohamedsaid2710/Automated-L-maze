@@ -43,7 +43,7 @@ def main(argv=None):
     params = args.params or args.params_file
     if not (infile and outfile and params):
         ap.error("input, output and params file are required (-i, -o, -p)")
-    # Windows consoles may not be UTF-8: print Hebrew, Arabic, Chinese ... without crashing
+    # Windows consoles may not be UTF-8: print Hebrew, Arabic ... without crashing
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")

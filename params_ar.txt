@@ -25,12 +25,12 @@ train_min_zipf: 2.0
 # (spaces are ignored; the set is what matters, not the order)
 alphabet: "ا ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ك ل م ن ه و ي ء أ إ آ ؤ ئ ة ى"
 
-# --- Language-specific generator settings ---
-min_ngram_count: 3
-
 # --- Generator (defaults; change to tune) ---
-n_samples: 400            # candidates sampled per word; more = better matches, slower
-temperature: 1.0          # < 1 favours rarer letter sequences, for more varied pseudowords
+final_only: "ة ى"         # these letters only at the end of a pseudoword (taa marbuta, alif maqsura)
+n_samples: 2000           # candidates sampled per word; more = better matches, slower. Arabic
+                          # needs many: most word-like strings are real words or near-words
+temperature: 1.0          # 1 = follow the model; < 1 gives rarer letters more chance
+                          # (more varied pseudowords)
 min_edit_distance: 1      # the distractor must differ from its target in at least this many
                           # letters, counted as letters to change, add or delete
                           # (Levenshtein distance): Haus -> Hans = 1, Haus -> Kopf = 4.
@@ -47,9 +47,21 @@ min_word_distance: 2      # a distractor that is not short must differ from ever
                           # (Zipf >= train_min_zipf) in at least this many letters (same counting as
                           # min_edit_distance); otherwise it reads as a misspelling of that
                           # word (Arabic اننتصب -> انتصب). 0 or 1 = check off
+near_word_min_zipf: 3.5   # common words for that check: Zipf >= this (0 = train_min_zipf). Arabic
+                          # is dense (root and pattern): against all words at Zipf 2 nearly every
+                          # word-like string is rejected and the pseudowords left are odd
+prefixes: "و ف ب ل ك س ال وال فال بال كال لل ولل فلل وب فب ول فل وس فس وك"
+suffixes: "ه ها هم هما هن ك كما كم كن ي ني نا ات ون ين ان تان تين ية ة وا"
+                          # a distractor that is a listed word plus one of these prefixes and/or
+                          # up to two of these suffixes is rejected: a reader takes it as a word
+                          # (تكملتك = تكملة + ك, بالكتاب = ب + الكتاب, فخارات = فخار + ات)
+stem_end_changes: "ت>ة ا>ى >ة"
+                          # spelling of the stem before a suffix: تكملت+ك = تكملة,
+                          # مستشفا+ه = مستشفى, رياض+ات = رياضة
 train_max_words: 100000   # most frequent words used to learn the letter sequences
 
 # --- Output ---
-first_word: "x-x-x"       # placeholder at the first position (standard Maze convention)
+first_word: 1             # 1 = x-x-x at the first position (standard Maze convention);
+                          # 0 = the first word gets a pseudoword like every other word
 seed: 0                   # same input + same seed = same output
 write_report: True        # also write <output>.report.csv (one row per distractor)

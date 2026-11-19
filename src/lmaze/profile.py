@@ -32,11 +32,11 @@ class Profile:
     train_max_words: int = 100_000
     alphabet: str = ""                 # if set, only training words made of these units
     vowels: str = ""                   # if set, a candidate must contain at least one of these units
+    final_only: str = ""               # units allowed only as the last unit (Hebrew final forms ך ם ן ף ץ)
+    not_final: str = ""                # units never allowed as the last unit (Hebrew כ מ נ פ צ)
     # --- Generator ---
-    ngram_order: int = 3               # 3 = trigrams; 1 = positions only (Chinese: start/inside/end)
-    min_ngram_count: int = 5           # n-grams seen fewer times in the lexicon are not used
     n_samples: int = 400               # candidates sampled per target
-    temperature: float = 0.5           # < 1 flattens the n-gram counts, for more varied candidates
+    temperature: float = 1.0           # 1 = follow the model; < 1 gives rarer units more chance
     min_edit_distance: int = 2         # the distractor differs from the target in at least this many
                                        # letters (letters to change, add or delete: Levenshtein distance)
     len_tolerance: int = 1             # if a word has no same-length pseudoword (short words), allow
@@ -47,8 +47,15 @@ class Profile:
     max_repeat_short: int = 3          # how often one short distractor may be used in a whole run
     min_word_distance: int = 2         # a (non-short) distractor must differ from every common word
                                        # (Zipf >= train_min_zipf) in at least this many letters; 0/1 = off
+    near_word_min_zipf: float = 0.0    # the common words for min_word_distance: Zipf >= this; 0 = train_min_zipf
+    prefixes: str = ""                 # (non-short) distractors that are a common word plus one of
+    suffixes: str = ""                 # these prefixes and/or up to two of these suffixes are rejected
+                                       # (Arabic تكملتك = تكملة + ك); space separated
+    stem_end_changes: str = ""         # "a>b ...": before a suffix a stem-final b is written a
+                                       # (Arabic "ت>ة": تكملت + ك -> تكملة); ">b" = b dropped
+                                       # (Arabic ">ة": رياض + ات -> رياضة)
     # --- Output ---
-    first_word: str = "x-x-x"          # placeholder at position 0
+    first_word: int = 1                # 1 = x-x-x at the first position; 0 = a pseudoword, like every other word
     seed: int = 0                      # same input + same seed = same output
     write_report: bool = True          # also write <output>.report.csv
 

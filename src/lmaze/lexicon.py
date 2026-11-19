@@ -1,7 +1,7 @@
 """The language's word list: what trains the generator, and what a distractor must not be.
 
 Lookups go straight to wordfreq's frequency table (no tokenizer), so they work the same for every
-language, including Chinese, where wordfreq's own lookup would need the jieba segmenter.
+language.
 """
 
 import math
@@ -52,22 +52,32 @@ class Lexicon:
         return round(math.log10(f) + 9, 2) if f > 0 else 0.0
 
     def is_real_word(self, word):
-        """Constraint 2: the string is in the word list (any entry counts)."""
-        return self.key(word) in self.table
+        """Constraint 2: the string is in the word list (any entry counts). Compared in the key form
+        on both sides, so that a candidate without hamza (قايدا) matches the listed قائدا."""
+        return self.key(word) in self._all_keys()
 
-    def common_words(self):
-        """Words of the list at least as frequent as the training floor (train_min_zipf): the words a
-        reader knows. Web noise (typos, names, foreign strings) stays out."""
+    def _all_keys(self):
+        """Every word of the frequency list, keyed."""
+        if not hasattr(self, "_keys"):
+            self._keys = {self.key(w) for w in self.table}
+        return self._keys
+
+    def common_words(self, min_zipf=None):
+        """Words of the list at least as frequent as min_zipf (default: the training floor,
+        train_min_zipf): the words a reader knows. Web noise (typos, names, foreign strings) stays out."""
+        z = self.profile.train_min_zipf if min_zipf is None else min_zipf
         if not hasattr(self, "_common"):
-            floor = 10 ** (self.profile.train_min_zipf - 9)
-            self._common = {self.key(w) for w, f in self.table.items() if f >= floor}
-        return self._common
+            self._common = {}
+        if z not in self._common:
+            floor = 10 ** (z - 9)
+            self._common[z] = {self.key(w) for w, f in self.table.items() if f >= floor}
+        return self._common[z]
 
     def near_common_word(self, cand_units, alphabet):
         """True if one edit (change, add or delete one unit) turns the candidate into a common word.
         Such a string is read as a misspelling of that word rather than as a nonword (Arabic
         اننتصب is read as انتصب)."""
-        common = self.common_words()
+        common = self.common_words(self.profile.near_word_min_zipf or None)
         u = list(cand_units)
         for i in range(len(u) + 1):
             if i < len(u):
@@ -80,8 +90,38 @@ class Lexicon:
                     return True
         return False
 
+    def affixed_common_word(self, cand):
+        """The listed word the candidate is built from with the profile's prefixes and suffixes
+        (one prefix, up to two suffixes, at least one affix; stems of 3+ units), else None.
+        Arabic تكملتك = تكملة + ك, فخارات = فخار + ات: a reader takes these as words. Any entry of
+        the word list counts as a stem, so rare stems (مختمر in مختمرين) count too."""
+        p = self.profile
+        if not (p.prefixes or p.suffixes):
+            return None
+        common = self._all_keys()                       # any listed word: rare stems count too (مختمر)
+        pres = [""] + p.prefixes.split()
+        sufs = [""] + p.suffixes.split()
+        changes = [c.split(">") for c in p.stem_end_changes.split()]
+        for pre in pres:
+            if not cand.startswith(pre):
+                continue
+            rest = cand[len(pre):]
+            for s1 in sufs:
+                for s2 in sufs if s1 else [""]:
+                    suf = s2 + s1                       # s2 is nearer the stem: سيار+ات+ها
+                    if not (pre or suf) or not rest.endswith(suf):
+                        continue
+                    stem = rest[:len(rest) - len(suf)] if suf else rest
+                    stems = {stem}
+                    if suf:
+                        stems |= {stem[:len(stem) - len(a)] + b for a, b in changes if stem.endswith(a)}
+                    for st in stems:
+                        if len(units(st, p.unit)) >= 3 and st in common:
+                            return f"{pre}+{st}+{suf}".strip("+")
+        return None
+
     def training_words(self):
-        """Words that train the n-gram model, as unit tuples (frequent, clean words only)."""
+        """Words that train the letter model, as unit tuples (frequent, clean words only)."""
         p = self.profile
         return _training_words(self.lang, p.wordlist, p.train_min_zipf, p.train_max_words, p.unit,
                                p.normalise, p.lowercase, p.strip_marks, p.alphabet, p.script, p.vowels)
@@ -112,3 +152,4 @@ def _training_words(lang, wordlist, min_zipf, max_words, unit, norm, lowercase, 
             continue                                       # acronyms (npd, spd): no vowel, bad letter statistics
         out.append(u)
     return tuple(out)
+

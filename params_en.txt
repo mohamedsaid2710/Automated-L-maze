@@ -21,12 +21,10 @@ train_min_zipf: 3.0
 alphabet: "abcdefghijklmnopqrstuvwxyz"
 vowels: "aeiouy"
 
-# --- Language-specific generator settings ---
-min_ngram_count: 3
-
 # --- Generator (defaults; change to tune) ---
 n_samples: 400            # candidates sampled per word; more = better matches, slower
-temperature: 1.0          # < 1 favours rarer letter sequences, for more varied pseudowords
+temperature: 1.0          # 1 = follow the model; < 1 gives rarer letters more chance
+                          # (more varied pseudowords)
 min_edit_distance: 2      # the distractor must differ from its target in at least this many
                           # letters, counted as letters to change, add or delete
                           # (Levenshtein distance): Haus -> Hans = 1, Haus -> Kopf = 4.
@@ -47,6 +45,7 @@ min_word_distance: 2      # a distractor that is not short must differ from ever
 train_max_words: 100000   # most frequent words used to learn the letter sequences
 
 # --- Output ---
-first_word: "x-x-x"       # placeholder at the first position (standard Maze convention)
+first_word: 1             # 1 = x-x-x at the first position (standard Maze convention);
+                          # 0 = the first word gets a pseudoword like every other word
 seed: 0                   # same input + same seed = same output
 write_report: True        # also write <output>.report.csv (one row per distractor)

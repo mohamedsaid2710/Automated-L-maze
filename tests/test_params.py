@@ -7,7 +7,7 @@ from lmaze.profile import load_profile, read_params
 ROOT = Path(__file__).resolve().parents[1]
 
 
-@pytest.mark.parametrize("code", ["de", "en", "ar", "he", "zh"])
+@pytest.mark.parametrize("code", ["de", "en", "ar", "he"])
 def test_shipped_params_files_load(code):
     p = load_profile(ROOT / f"params_{code}.txt")
     assert p.language == code
