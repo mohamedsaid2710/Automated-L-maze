@@ -32,7 +32,7 @@ def main(argv=None):
     ap.add_argument("input_file", nargs="?", help="input file (or -i)")
     ap.add_argument("output_file", nargs="?", help="output file (or -o)")
     ap.add_argument("params_file", nargs="?", help="params file (or -p)")
-    ap.add_argument("-i", "--input", help="stimulus file: tag;id;sentence[;labels]")
+    ap.add_argument("-i", "--input", help="stimulus file: tag;id;sentence[;labels], separated by ; tab or , (header names columns)")
     ap.add_argument("-o", "--output", help="output file")
     ap.add_argument("-p", "--params", help="params file, e.g. params_de.txt")
     ap.add_argument("-f", "--format", choices=["delim", "ibex"], default="delim")
@@ -43,7 +43,7 @@ def main(argv=None):
     params = args.params or args.params_file
     if not (infile and outfile and params):
         ap.error("input, output and params file are required (-i, -o, -p)")
-    # Windows consoles may not be UTF-8: print Hebrew, Arabic ... without crashing
+    # Windows consoles may not be UTF-8: print Arabic ... without crashing
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")

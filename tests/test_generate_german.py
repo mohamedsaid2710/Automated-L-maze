@@ -19,7 +19,7 @@ PARAMS_DE = ROOT / "params_de.txt"
 
 
 def profile_de():
-    return dataclasses.replace(load_profile(PARAMS_DE), train_max_words=20_000)
+    return dataclasses.replace(load_profile(PARAMS_DE), train_max_words=20_000, first_word=1)
 
 
 @pytest.fixture(scope="module")
@@ -155,3 +155,10 @@ def test_eszett_counts_as_one_letter_for_length(german):
     assert german.lexicon.length("groß") == 4
     pw, _ = german.pseudoword("groß", set(), ("t", "1"))
     assert n_units(pw) == 4
+
+
+def test_unknown_accented_letter_is_scored_without_its_accent(german):
+    """é is not in the German alphabet: Café is scored as cafe, not with an unknown symbol."""
+    m = german.model
+    assert "é" not in m.stoi
+    assert m.score([tuple("café")]) == m.score([tuple("cafe")])

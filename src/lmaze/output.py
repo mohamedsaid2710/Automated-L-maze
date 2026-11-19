@@ -33,6 +33,7 @@ REPORT_COLUMNS = [
     "item_id", "label", "position", "target", "distractor", "generator",
     "target_units", "distractor_units", "len_ok",
     "is_real_word", "edit_distance", "target_logprob", "distractor_logprob", "logprob_delta",
+    "letter_prob_ratio",
     "n_candidates", "n_rejected_real_word", "relaxation", "is_placeholder", "note",
 ]
 

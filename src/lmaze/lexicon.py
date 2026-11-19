@@ -26,7 +26,7 @@ def _script_pattern(script):
 
 
 def strip_marks(text):
-    """Remove combining marks (Arabic harakat, Hebrew points): wordfreq lists unvocalised forms."""
+    """Remove combining marks (Arabic harakat): wordfreq lists unvocalised forms."""
     decomposed = unicodedata.normalize("NFD", text)
     return unicodedata.normalize("NFC", "".join(ch for ch in decomposed if unicodedata.category(ch) != "Mn"))
 
@@ -42,7 +42,7 @@ class Lexicon:
     def key(self, word):
         """The form used for lookup and modelling: normalised; case-folded for scripts with case
         (casefold, as wordfreq stores its words: Straße -> strasse);
-        without combining marks where the profile says so (vocalised Arabic or Hebrew input)."""
+        without combining marks where the profile says so (vocalised Arabic input)."""
         form = normalise(word, self.profile.normalise)
         if self.profile.strip_marks:
             form = strip_marks(form)
@@ -153,7 +153,7 @@ def _training_words(lang, wordlist, min_zipf, max_words, unit, norm, lowercase, 
         if lowercase:
             form = form.casefold()
         if in_script and not in_script.match(form):
-            continue                                       # digits, Latin words in a Hebrew list, ...
+            continue                                       # digits, Latin words in an Arabic list, ...
         u = tuple(units(form, unit))
         if allowed is not None and not all(x in allowed for x in u):
             continue

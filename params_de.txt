@@ -22,9 +22,9 @@ alphabet: "abcdefghijklmnopqrstuvwxyzäöüß"
 vowels: "aeiouyäöü"
 
 # --- Generator (defaults; change to tune) ---
-n_samples: 400            # candidates sampled per word; more = better matches, slower
-temperature: 1.0          # 1 = follow the model; < 1 gives rarer letters more chance
-                          # (more varied pseudowords)
+n_samples: 2000           # candidates sampled per word; more = better matches, slower
+temperature: 1.0          # 1 = follow the model; above 1 gives rarer letters more chance
+                          # (more varied pseudowords); below 1 favours the most likely letters
 min_edit_distance: 2      # the distractor must differ from its target in at least this many
                           # letters, counted as letters to change, add or delete
                           # (Levenshtein distance): Haus -> Hans = 1, Haus -> Kopf = 4.

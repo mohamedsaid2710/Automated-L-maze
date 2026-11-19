@@ -20,6 +20,7 @@ import logging
 import math
 import random
 import time
+import unicodedata
 
 import torch
 from torch import nn
@@ -33,6 +34,14 @@ TRAIN = {"batch": 256, "lr": 3e-3, "max_epochs": 20, "patience": 2, "heldout": 0
 VERSION = 2                                                # bump when the architecture or training changes
 SHORT_MAX = 4                                              # lengths up to this get more samples
 SHORT_SAMPLES = 3000
+
+
+def _base(unit):
+    """A unit without its accents (é -> e): how a letter the model never saw is scored, e.g. the é of
+    a loanword (Café) in German. Without this it would be scored as <unk>, as if the word were
+    extremely unusual."""
+    return unicodedata.normalize("NFC", "".join(c for c in unicodedata.normalize("NFD", unit)
+                                                 if unicodedata.category(c) != "Mn"))
 
 
 class _LSTM(nn.Module):
@@ -76,7 +85,7 @@ class NeuralModel:
 
     # ---- training ---------------------------------------------------------------------------------
     def _encode(self, seq):
-        return [self.stoi.get(u, UNK) for u in seq]
+        return [self.stoi[u] if u in self.stoi else self.stoi.get(_base(u), UNK) for u in seq]
 
     def _batches(self, words, rng=None):
         idx = list(range(len(words)))
@@ -162,8 +171,11 @@ class NeuralModel:
     def sample(self, n, count, seed, temperature=1.0):
         """`count` sequences of exactly n units, drawn in one batch, one unit position at a time.
 
-        temperature: each option is weighted by p ** temperature, so < 1 gives rarer units more
-        chance (more varied strings), 1 follows the model."""
+        temperature (the usual meaning): each option is weighted by p ** (1 / temperature). 1 follows
+        the model; above 1 gives rarer units more chance (more varied strings); below 1 favours the
+        most likely units."""
+        if temperature <= 0:
+            raise ValueError(f"temperature must be above 0, got {temperature}")
         if n < 1:
             return []
         g = torch.Generator().manual_seed(seed)
@@ -176,7 +188,7 @@ class NeuralModel:
             banned = self.not_final if i == n - 1 else self.final_only   # spelling rules of the script
             if banned:
                 logp[:, banned] = -math.inf
-            nxt = torch.multinomial(torch.softmax(logp * temperature, -1), 1, generator=g)
+            nxt = torch.multinomial(torch.softmax(logp / temperature, -1), 1, generator=g)
             out.append(nxt)
             x = nxt
         seqs = torch.cat(out, 1).tolist()

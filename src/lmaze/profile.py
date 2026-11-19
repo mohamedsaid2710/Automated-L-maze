@@ -18,25 +18,25 @@ class Profile:
     # --- Language ---
     language: str                      # ISO 639-1 code, also the wordfreq language code
     language_name: str
-    script: str                        # Unicode script name ("Latin", "Hebrew", "Arabic", "Devanagari",
+    script: str                        # Unicode script name ("Latin", "Arabic", "Devanagari",
                                        # "Han"): only words in this script train the generator
     direction: str = "ltr"             # "ltr" or "rtl" (documentation; the core ignores it)
     has_case: bool = True              # copy the target's capitalisation onto the distractor
     unit: str = "grapheme"             # length unit: "grapheme" or "char"
     normalise: str = "NFC"             # Unicode normalisation before any comparison
     lowercase: bool = True             # compare and model lowercased forms (scripts with case)
-    strip_marks: bool = False          # drop combining marks before lookup (vocalised Arabic/Hebrew)
+    strip_marks: bool = False          # drop combining marks before lookup (vocalised Arabic)
     # --- Lexicon (wordfreq) ---
     wordlist: str = "large"            # wordfreq list: "large" where available, else "best"
     train_min_zipf: float = 2.0        # only words at least this frequent train the generator
     train_max_words: int = 100_000
     alphabet: str = ""                 # if set, only training words made of these units
     vowels: str = ""                   # if set, a candidate must contain at least one of these units
-    final_only: str = ""               # units allowed only as the last unit (Hebrew final forms ך ם ן ף ץ)
-    not_final: str = ""                # units never allowed as the last unit (Hebrew כ מ נ פ צ)
+    final_only: str = ""               # units allowed only as the last unit (Arabic ة ى)
+    not_final: str = ""                # units never allowed as the last unit (e.g. non-final letter forms)
     # --- Generator ---
     n_samples: int = 400               # candidates sampled per target
-    temperature: float = 1.0           # 1 = follow the model; < 1 gives rarer units more chance
+    temperature: float = 1.0           # 1 = follow the model; > 1 gives rarer units more chance, < 1 fewer
     min_edit_distance: int = 2         # the distractor differs from the target in at least this many
                                        # letters (letters to change, add or delete: Levenshtein distance)
     len_tolerance: int = 1             # if a word has no same-length pseudoword (short words), allow

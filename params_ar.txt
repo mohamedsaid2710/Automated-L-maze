@@ -29,8 +29,8 @@ alphabet: "ا ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ك ل 
 final_only: "ة ى"         # these letters only at the end of a pseudoword (taa marbuta, alif maqsura)
 n_samples: 2000           # candidates sampled per word; more = better matches, slower. Arabic
                           # needs many: most word-like strings are real words or near-words
-temperature: 1.0          # 1 = follow the model; < 1 gives rarer letters more chance
-                          # (more varied pseudowords)
+temperature: 1.0          # 1 = follow the model; above 1 gives rarer letters more chance
+                          # (more varied pseudowords); below 1 favours the most likely letters
 min_edit_distance: 1      # the distractor must differ from its target in at least this many
                           # letters, counted as letters to change, add or delete
                           # (Levenshtein distance): Haus -> Hans = 1, Haus -> Kopf = 4.

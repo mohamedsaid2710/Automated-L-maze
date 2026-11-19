@@ -200,6 +200,9 @@ class Generator:
                         "edit_distance": rep.get("edit_distance"),
                         "target_logprob": lp_t, "distractor_logprob": lp_d,
                         "logprob_delta": None if lp_t is None or lp_d is None else round(lp_d - lp_t, 3),
+                        # 2 ** delta: how probable each letter of the distractor is, on average, relative
+                        # to the target's (0.66 = two thirds as probable; 1 = equally word-like)
+                        "letter_prob_ratio": None if lp_t is None or lp_d is None else round(2 ** (lp_d - lp_t), 2),
                         "n_candidates": rep.get("n_candidates"),
                         "n_rejected_real_word": rep.get("n_rejected_real_word"),
                         "relaxation": rep.get("relaxation", ""),

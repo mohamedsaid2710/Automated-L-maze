@@ -2,7 +2,7 @@
 
 Nothing here assumes Latin letters, spaces inside words, case, or a writing direction. A word is
 split into *units* (grapheme clusters by default, so a letter with its combining marks, a
-Devanagari akshara with its vowel sign, or a Hebrew letter with its points is one unit), and
+Devanagari akshara with its vowel sign, or an Arabic letter with its harakat is one unit), and
 everything that counts or compares length works on units.
 """
 
@@ -35,7 +35,7 @@ def _is_word_char(ch):
     """Letters, digits and combining marks (Mn, Mc) belong to the word; the rest is punctuation.
 
     Combining marks count as word characters, otherwise a vowel sign or diacritic at the end of a
-    word (Arabic harakat, Devanagari matras, Hebrew points) would be stripped as punctuation.
+    word (Arabic harakat, Devanagari matras) would be stripped as punctuation.
     """
     return ch.isalnum() or unicodedata.category(ch) in ("Mn", "Mc")
 

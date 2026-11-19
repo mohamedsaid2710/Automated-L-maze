@@ -5,7 +5,7 @@ matched, orthographically legal pseudoword for every word, ready for PsychoPy, j
 plus a report of how well each distractor meets the constraints.
 
 Designed so that a new language, in any script, needs only a params file. Included: German,
-English, Arabic and Hebrew.
+English and Arabic.
 
 **Status:** in development.
 
@@ -36,8 +36,8 @@ package.
    - a word plus prefixes or suffixes (Arabic بالكتاب, تكملتك; `prefixes`, `suffixes`),
    - too close to its target (`min_edit_distance`), or already used too often (`max_repeat`).
 
-   Spelling rules of the script are kept while drawing: Hebrew final letters (ך ם ן ף ץ) and Arabic
-   ة ى only at the end of a word (`final_only`, `not_final`).
+   Spelling rules of the script are kept while drawing: Arabic ة ى only at the end of a word
+   (`final_only`, `not_final`).
 4. **Choosing.** Of the strings left, the tool keeps the one that is about as word-like as its target
    (the model's mean log probability per letter, the negative of mean surprisal). Short words with no
    such string of the same length may get one a letter longer or shorter (`len_tolerance`); this
@@ -56,11 +56,16 @@ uv run lmaze -i examples/german_sample.txt -o output_de.txt -p params_de.txt -f 
 
 - `-i` input file, `-o` output file, `-p` params file, `-f` `delim` or `ibex`, `--seed` overrides
   the seed in the params file.
-- Input: `tag;id;sentence[;labels]`, UTF-8, one sentence per line. Words with the same label in the
-  conditions of one item get the same distractor.
+- Input: `tag;id;sentence[;labels]`, UTF-8, one sentence per line, separated by semicolons, tabs or
+  commas (`.txt`, `.csv` or `.tsv`). With a header row, columns are found by name (`tag`, `id` or
+  `item`, `sentence`, `labels`) in any order, and other columns are ignored. Words with the same label
+  in the conditions of one item get the same distractor.
 - Output: `delim` (`tag;id;sentence;distractors;labels`) or `ibex` (PCIbex Maze lines), plus
   `<output>.report.csv` with one row per distractor: target, distractor, lengths, edit distance,
-  the word-likeness of both, and any relaxation used.
+  the word-likeness of both, and any relaxation used. `logprob_delta` is the distractor's minus the
+  target's mean log2 probability per letter (negative = the distractor is less word-like);
+  `letter_prob_ratio` is the same as a ratio, 2 ** delta: 0.66 means each letter of the distractor is
+  on average two thirds as probable as each letter of the target, 1 means equally word-like.
 
 Example (German):
 
@@ -70,8 +75,7 @@ sample;2;Die Katze saß auf der Matte.;x-x-x Unehr hlä lym fys Befür.;0 1 2 3 
 
 ## Parameters
 
-Each language has a params file (`params_de.txt`, `params_en.txt`, `params_ar.txt`,
-`params_he.txt`) in a simple `key: value` format. Every parameter is explained in the file; edit
+Each language has a params file (`params_de.txt`, `params_en.txt`, `params_ar.txt`) in a simple `key: value` format. Every parameter is explained in the file; edit
 the values as you need. The ones you are most likely to change:
 
 | Parameter | What it does |
@@ -82,7 +86,7 @@ the values as you need. The ones you are most likely to change:
 | `max_repeat`, `max_repeat_short` | how often one distractor may be used in a run (short ones may recur) |
 | `len_tolerance` | how much longer or shorter a short word's distractor may be (0 = never) |
 | `n_samples` | strings drawn per word; more = closer matches, slower |
-| `temperature` | 1 follows the model; below 1 gives rarer letters more chance |
+| `temperature` | 1 follows the model; above 1 gives rarer letters more chance, below 1 fewer |
 
 A new language needs only its own params file (language code, script, alphabet, spelling rules).
 
