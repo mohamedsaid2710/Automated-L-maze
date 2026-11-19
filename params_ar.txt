@@ -63,5 +63,6 @@ train_max_words: 100000   # most frequent words used to learn the letter sequenc
 # --- Output ---
 first_word: 1             # 1 = x-x-x at the first position (standard Maze convention);
                           # 0 = the first word gets a pseudoword like every other word
-seed: 0                   # same input + same seed = same output
+seed: None                # None = a new random seed each run (printed, and in the report);
+                          # a number (e.g. 1) = the same distractors every run
 write_report: True        # also write <output>.report.csv (one row per distractor)

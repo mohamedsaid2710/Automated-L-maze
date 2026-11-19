@@ -36,7 +36,7 @@ def main(argv=None):
     ap.add_argument("-o", "--output", help="output file")
     ap.add_argument("-p", "--params", help="params file, e.g. params_de.txt")
     ap.add_argument("-f", "--format", choices=["delim", "ibex"], default="delim")
-    ap.add_argument("--seed", type=int, help="overrides the seed in the params file")
+    ap.add_argument("--seed", type=int, help="overrides the seed in the params file (default there: random)")
     args = ap.parse_args(argv)
     infile = args.input or args.input_file
     outfile = args.output or args.output_file
@@ -56,6 +56,8 @@ def main(argv=None):
     rows = gen.run(items)
     (save_ibex if args.format == "ibex" else save_delim)(outfile, items)
     print(f"{profile.name}: {len(items)} items -> {outfile} ({time.time() - t:.1f} s)")
+    print(f"seed {gen.seed}" + ("" if args.seed is not None or profile.seed is not None
+                                else f" (random; --seed {gen.seed} repeats this run)"))
     print(_summary(rows))
     if profile.write_report:
         print(f"report: {save_report(outfile, rows)}")

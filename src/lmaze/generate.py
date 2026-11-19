@@ -15,6 +15,7 @@ Labels: one distractor per label, shared by all rows of an item (Latin-square co
 """
 
 import logging
+import secrets
 import zlib
 
 import regex
@@ -31,9 +32,11 @@ _SEGMENTS = regex.compile(r"([^\p{L}\p{M}]+)")
 
 
 class Generator:
-    def __init__(self, profile, seed=0):
+    def __init__(self, profile, seed=None):
         self.profile = profile
-        self.seed = seed
+        # None = a new random seed for this run; it is printed and written to the report, so the run
+        # can be repeated with --seed
+        self.seed = secrets.randbelow(2 ** 31) if seed is None else seed
         self.lexicon = Lexicon(profile)
         words = self.lexicon.training_words()
         self.model = NeuralModel(words, key_parts=(profile.language, profile.wordlist, profile.train_min_zipf,
@@ -193,7 +196,7 @@ class Generator:
                     dn = len(units(self.lexicon.key(pw), p.unit)) if pw else None
                     lp_t, lp_d = rep.get("target_logprob"), rep.get("distractor_logprob")
                     rows.append({
-                        "item_id": item.id, "label": lab, "position": i, "target": body,
+                        "seed": self.seed, "item_id": item.id, "label": lab, "position": i, "target": body,
                         "distractor": chosen[lab], "generator": "neural" if pw else "placeholder",
                         "target_units": tn, "distractor_units": dn, "len_ok": dn == tn if pw else False,
                         "is_real_word": self.lexicon.is_real_word(pw) if pw else None,

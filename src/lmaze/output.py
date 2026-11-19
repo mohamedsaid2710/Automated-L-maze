@@ -30,7 +30,7 @@ def save_ibex(path, items):
 
 
 REPORT_COLUMNS = [
-    "item_id", "label", "position", "target", "distractor", "generator",
+    "seed", "item_id", "label", "position", "target", "distractor", "generator",
     "target_units", "distractor_units", "len_ok",
     "is_real_word", "edit_distance", "target_logprob", "distractor_logprob", "logprob_delta",
     "letter_prob_ratio",

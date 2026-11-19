@@ -33,3 +33,14 @@ def test_params_errors(tmp_path):
     f.write_text('language: "xx"\nlanguage_name: "T"\nscript: "Latin"\nn_samples: "many"\n', encoding="utf-8")
     with pytest.raises(ValueError, match="n_samples"):
         load_profile(f)
+
+
+def test_seed_is_none_or_a_whole_number(tmp_path):
+    f = tmp_path / "p.txt"
+    base = 'language: "xx"\nlanguage_name: "T"\nscript: "Latin"\n'
+    for raw, want in (("None", None), ("7", 7)):
+        f.write_text(base + f"seed: {raw}\n", encoding="utf-8")
+        assert load_profile(f).seed == want
+    f.write_text(base + "seed: 1.5\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="seed"):
+        load_profile(f)

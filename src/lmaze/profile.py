@@ -9,6 +9,7 @@ import ast
 import logging
 from dataclasses import dataclass, fields
 from pathlib import Path
+from typing import Optional
 
 _REQUIRED = ("language", "language_name", "script")
 
@@ -56,7 +57,7 @@ class Profile:
                                        # (Arabic ">ة": رياض + ات -> رياضة)
     # --- Output ---
     first_word: int = 1                # 1 = x-x-x at the first position; 0 = a pseudoword, like every other word
-    seed: int = 0                      # same input + same seed = same output
+    seed: Optional[int] = None         # None = random each run (printed and in the report); a number = same output each run
     write_report: bool = True          # also write <output>.report.csv
 
     @property
@@ -113,6 +114,10 @@ def load_profile(path):
     if missing:
         raise ValueError(f"{path}: missing required parameter(s): {', '.join(missing)}")
     for key, value in params.items():
+        if key == "seed":
+            if value is not None and (not isinstance(value, int) or isinstance(value, bool)):
+                raise ValueError(f"{path}: seed should be a whole number or None, got {value!r}")
+            continue
         want = str if key in _REQUIRED else type(_FIELDS[key].default)
         if want is float and isinstance(value, int) and not isinstance(value, bool):
             params[key] = float(value)

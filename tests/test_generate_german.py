@@ -82,6 +82,13 @@ def test_no_distractor_twice_within_an_item(run):
         assert len(set(by_label.values())) == len(by_label)
 
 
+def test_no_seed_gives_a_random_seed_that_is_reported():
+    a, b = Generator(profile_de()), Generator(profile_de())
+    assert a.seed != b.seed
+    rows = a.run(read_input(EXAMPLES / "german_sample.txt"))
+    assert {r["seed"] for r in rows} == {a.seed}
+
+
 def test_same_seed_same_output(german):
     a = read_input(EXAMPLES / "german_sample.txt")
     b = read_input(EXAMPLES / "german_sample.txt")
