@@ -67,8 +67,9 @@ class Generator:
         p = self.profile
         key = self.lexicon.key(segment)
         tu = units(key, p.unit)
+        n = self.lexicon.length(segment)                # visible length (ß = 1), the length to match
         seed = self._seed(*seed_parts, key)
-        pools = {0: self.model.candidates(tu, seed, p.n_samples, p.temperature)}
+        pools = {0: self.model.candidates(tu, seed, p.n_samples, p.temperature, length=n)}
         target_lp = pools[0][1]
         diag = {"target_logprob": round(target_lp, 3), "n_candidates": len(pools[0][0]), "n_rejected_real_word": 0}
         steps = []
@@ -82,9 +83,9 @@ class Generator:
             """Candidates k units shorter or longer than the target (both, best match first)."""
             if k not in pools:
                 merged = []
-                for n in {len(tu) - k, len(tu) + k}:
-                    if n >= 1:
-                        merged += self.model.candidates(tu, seed, p.n_samples, p.temperature, length=n)[0]
+                for m in {n - k, n + k}:
+                    if m >= 1:
+                        merged += self.model.candidates(tu, seed, p.n_samples, p.temperature, length=m)[0]
                 pools[k] = (sorted(merged, key=lambda c: (abs(c[1] - target_lp), c[0])), target_lp)
             return pools[k]
 
@@ -142,7 +143,7 @@ class Generator:
                 continue
             pw, diag = self._segment(part, used, (*seed_parts, k))
             if pw is None:
-                n = len(units(self.lexicon.key(part), p.unit))
+                n = self.lexicon.length(part)
                 return None, {**diag, "note": f"no pseudoword of {n}" + (f"-{n + p.len_tolerance}" if p.len_tolerance else "") + " units"}
             out.append(copy_case(part, pw, p.has_case))
             diags.append(diag)
@@ -179,7 +180,7 @@ class Generator:
                         continue
                     targets[lab] = body
                     pw, rep = self.pseudoword(body, used, (item.id, lab))
-                    tn = len(units(self.lexicon.key(body), p.unit))
+                    tn = self.lexicon.length(body)
                     if pw is None:
                         logging.warning("Item %s, word %r: %s; placeholder used", item.id, body, rep.get("note"))
                         chosen[lab] = PLACEHOLDER

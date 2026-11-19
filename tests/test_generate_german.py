@@ -140,3 +140,18 @@ def test_first_word_0_gives_the_first_word_a_pseudoword():
             first, dist = strip_punct(s.words[0]), strip_punct(s.distractors[0])
             assert dist != "x-x-x" and dist != first
             assert dist[:1].isupper() == first[:1].isupper()      # capitalised like the target
+
+
+def test_eszett_is_looked_up_and_scored_as_ss(german):
+    """wordfreq stores German words case-folded (Straße as strasse); the key form must match."""
+    lex = german.lexicon
+    assert lex.key("Straße") == "strasse"
+    assert lex.is_real_word("Straße") and lex.zipf("Straße") > 3
+    assert "ß" not in german.model.stoi            # never trained on, so it must not reach the model
+
+
+def test_eszett_counts_as_one_letter_for_length(german):
+    """groß is 4 letters on screen: its distractor has 4 letters, not 5 (the length of gross)."""
+    assert german.lexicon.length("groß") == 4
+    pw, _ = german.pseudoword("groß", set(), ("t", "1"))
+    assert n_units(pw) == 4

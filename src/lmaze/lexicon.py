@@ -40,12 +40,21 @@ class Lexicon:
         self.table = _freq_table(self.lang, profile.wordlist)
 
     def key(self, word):
-        """The form used for lookup and modelling: normalised; lowercased for scripts with case;
+        """The form used for lookup and modelling: normalised; case-folded for scripts with case
+        (casefold, as wordfreq stores its words: Straße -> strasse);
         without combining marks where the profile says so (vocalised Arabic or Hebrew input)."""
         form = normalise(word, self.profile.normalise)
         if self.profile.strip_marks:
             form = strip_marks(form)
-        return form.lower() if self.profile.lowercase else form
+        return form.casefold() if self.profile.lowercase else form
+
+    def length(self, word):
+        """Length in units as the reader sees the word: ß counts as one unit, although the key form
+        spells it ss. Distractors are matched to this length."""
+        form = normalise(word, self.profile.normalise)
+        if self.profile.strip_marks:
+            form = strip_marks(form)
+        return len(units(form, self.profile.unit))
 
     def zipf(self, word):
         f = self.table.get(self.key(word), 0.0)
@@ -142,7 +151,7 @@ def _training_words(lang, wordlist, min_zipf, max_words, unit, norm, lowercase, 
         if marks:
             form = strip_marks(form)
         if lowercase:
-            form = form.lower()
+            form = form.casefold()
         if in_script and not in_script.match(form):
             continue                                       # digits, Latin words in a Hebrew list, ...
         u = tuple(units(form, unit))
