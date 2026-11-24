@@ -139,3 +139,7 @@ letter after 20 epochs and 2.40 after 40; 0.001 gave 2.48 and 2.43; 0.01 stopped
 defaults were the best of these; training twice as long gained about 1 %.
 
 Mohammed Said, Institute of Linguistics, University of Stuttgart.
+
+## License
+
+MIT; see [LICENSE](LICENSE).

@@ -3,7 +3,8 @@ name = "lmaze"
 version = "0.1.0"
 description = "Pseudoword distractors for L-maze experiments, for any language and script"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{name = "Mohammed Said"}]
 requires-python = ">=3.10"
 dependencies = [
